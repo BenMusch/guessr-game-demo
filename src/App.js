@@ -122,22 +122,35 @@ function Game(props) {
   const currentRound = guesses.length;
   const currentStation = stations[currentRound];
   let currentScore = 0;
+
   for (const guess of guesses) {
     currentScore += guess.score;
   }
 
-  return (
-    <div>
-      <h3>Round {currentRound + 1} of 5</h3>
-      <h3>Score: {currentScore}</h3>
-      <GameplayMap
-        station={currentStation}
-        onNext={(guessData) => {
-          setGuesses([...guesses, guessData]);
-        }}
-      />
-    </div>
-  );
+  const isGameOver = guesses.length === 5;
+
+  if (isGameOver) {
+    return (
+      <div>
+        <h1>Game over!</h1>
+        <h1>Score: {currentScore}</h1>
+        <button onClick={() => window.location.reload()}>Play again</button>
+      </div>
+    );
+  } else {
+    return (
+      <div>
+        <h3>Round {currentRound + 1} of 5</h3>
+        <h3>Score: {currentScore}</h3>
+        <GameplayMap
+          station={currentStation}
+          onNext={(guessData) => {
+            setGuesses([...guesses, guessData]);
+          }}
+        />
+      </div>
+    );
+  }
 }
 
 function App() {
