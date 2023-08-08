@@ -44,10 +44,15 @@ export function getScore(guess, actualLocation) {
   return Math.round((5000 / 15000 ** 2) * Math.max(15000 - distance, 0) ** 2);
 }
 
-function GameplayMap() {
+function GameplayMap(props) {
   const [guess, setGuess] = useState(null);
   const [isGuessConfirmed, setIsGuessConfirmed] = useState(false);
-  const station = _.sample(allStations);
+  const station = props.station;
+
+  let score;
+  if (guess) {
+    score = getScore(guess, station);
+  }
 
   return (
     <div>
@@ -80,9 +85,25 @@ function GameplayMap() {
         )}
       </Map>
 
-      {isGuessConfirmed && <p>Score: {getScore(guess, station)}</p>}
+      {isGuessConfirmed && <p>Score: {score}</p>}
+      {isGuessConfirmed && (
+        <button
+          onClick={() => {
+            setIsGuessConfirmed(false);
+            setGuess(null);
+            props.onNext({
+              latitude: guess.latitude,
+              longitude: guess.longitude,
+              score: score,
+            });
+          }}
+        >
+          Next round
+        </button>
+      )}
       {!isGuessConfirmed && (
         <button
+          disabled={guess === null}
           onClick={() => {
             setIsGuessConfirmed(true);
           }}
@@ -94,10 +115,37 @@ function GameplayMap() {
   );
 }
 
-function App() {
+function Game(props) {
+  const stations = props.stations;
+  const [guesses, setGuesses] = useState([]);
+
+  const currentRound = guesses.length;
+  const currentStation = stations[currentRound];
+  let currentScore = 0;
+  for (const guess of guesses) {
+    currentScore += guess.score;
+  }
+
   return (
     <div>
-      <GameplayMap />
+      <h3>Round {currentRound + 1} of 5</h3>
+      <h3>Score: {currentScore}</h3>
+      <GameplayMap
+        station={currentStation}
+        onNext={(guessData) => {
+          setGuesses([...guesses, guessData]);
+        }}
+      />
+    </div>
+  );
+}
+
+function App() {
+  const stations = _.sampleSize(allStations, 5);
+
+  return (
+    <div>
+      <Game stations={stations} />
     </div>
   );
 }
